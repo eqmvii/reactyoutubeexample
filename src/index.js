@@ -5,6 +5,7 @@ import YTSearch from 'youtube-api-search';
 import SearchBar from './components/search_bar.js'; // my own component
 import VideoList from './components/video_list.js';
 import VideoDetail from './components/video_detail.js';
+import _ from 'lodash';
 
 const API_KEY = 'AIzaSyBaK605cQZg1J99DcUgYYokRFP_5YTLH00' // for YouTube Datav3 API
 
@@ -30,20 +31,39 @@ class App extends React.Component {
 	constructor(props) {
 		super(props);
 
-		this.state = {videos:[] };
-		YTSearch({key: API_KEY, term: 'surfboards'}, (videos) => {
-			this.setState({ videos });;
+		this.state = {
+			videos:[],
+			selectedVideo: null
+		};
+
+		this.videoSearch('kites');
+
+
+
+	}
+
+	videoSearch(term) {
+			YTSearch({key: API_KEY, term: term}, (videos) => {
+				this.setState({ 
+					videos: videos, 
+					selectedVideo: videos[0]
+				});;
 		});
 
 	}
 
 	render() {
-			return (
-	<div>		
-		<SearchBar />
-		<VideoDetail video={this.state.videos[0]}/>
-		<VideoList videos={this.state.videos}/>
-	</div>)
+		//debounce just like google instant search works
+		const videoSearch = _.debounce((term) => {this.videoSearch(term)}, 300);
+		return (
+			<div>		
+				<SearchBar onSearchTermChange={videoSearch} />
+				<VideoDetail video={this.state.selectedVideo}/>
+				<VideoList 
+					onVideoSelect={selectedVideo => this.setState({selectedVideo}) }
+					videos={this.state.videos}
+				/>
+			</div>)
 
 	}
 }
